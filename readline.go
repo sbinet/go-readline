@@ -77,5 +77,18 @@ func WriteHistoryFile(s string) os.Errno {
 	return os.Errno(errno)
 }
 
+// Set the readline word delimiters for tab-completion
+func SetCompleterDelims(break_chars string) {
+	p := C.CString(break_chars)
+	//defer C.free(unsafe.Pointer(p))
+	C.free(unsafe.Pointer(C.rl_completer_word_break_characters))
+	C.rl_completer_word_break_characters = p
+}
 
+// Get the readline word delimiters for tab-completion
+func GetCompleterDelims() string {
+	cstr := C.rl_completer_word_break_characters
+	delims := C.GoString(cstr)
+	return delims
+}
 /* EOF */
