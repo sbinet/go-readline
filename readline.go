@@ -5,10 +5,14 @@ package readline
 // TODO:
 //  implement a go-oriented command completion
 
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <readline/readline.h>
-// #include <readline/history.h>
+/*
+ #cgo LDFLAGS: -lreadline
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <readline/readline.h>
+ #include <readline/history.h>
+ */
 import "C"
 import "unsafe"
 import "os"
