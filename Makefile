@@ -4,7 +4,7 @@
 
 include $(GOROOT)/src/Make.inc
 
-TARG=readline
+TARG=bitbucket.org/binet/go-readline
 CGOFILES=readline.go
 CGO_LDFLAGS=-lreadline
 
