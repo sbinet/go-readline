@@ -12,32 +12,52 @@ package readline
  #include <string.h>
  #include <readline/readline.h>
  #include <readline/history.h>
- */
+
+ char* _go_readline_strarray_at(char **strarray, int idx) 
+ {
+   return strarray[idx];
+ }
+
+ int _go_readline_strarray_len(char **strarray)
+ {
+   int sz = 0;
+   while (strarray[sz] != NULL) {
+     sz += 1;
+   }
+   return sz;
+ }
+*/
 import "C"
 import "unsafe"
-import "os"
+import "syscall"
 
 func ReadLine(prompt *string) *string {
-	var p *C.char;
+	var p *C.char
 
 	//readline allows an empty prompt(NULL)
-	if prompt != nil { p = C.CString(*prompt) }
+	if prompt != nil {
+		p = C.CString(*prompt)
+	}
 
-	ret := C.readline(p);
+	ret := C.readline(p)
 
-	if p != nil { C.free(unsafe.Pointer(p)) }
+	if p != nil {
+		C.free(unsafe.Pointer(p))
+	}
 
-	if ret == nil { return nil } //EOF
+	if ret == nil {
+		return nil
+	} //EOF
 
-	s := C.GoString(ret);
-	C.free(unsafe.Pointer(ret));
+	s := C.GoString(ret)
+	C.free(unsafe.Pointer(ret))
 	return &s
 }
 
 func AddHistory(s string) {
-	p := C.CString(s);
+	p := C.CString(s)
 	defer C.free(unsafe.Pointer(p))
-	C.add_history(p);	
+	C.add_history(p)
 }
 
 // Parse and execute single line of a readline init file.
@@ -49,20 +69,26 @@ func ParseAndBind(s string) {
 
 // Parse a readline initialization file.
 // The default filename is the last filename used.
-func ReadInitFile(s string) os.Errno {
+func ReadInitFile(s string) error {
 	p := C.CString(s)
 	defer C.free(unsafe.Pointer(p))
 	errno := C.rl_read_init_file(p)
-	return os.Errno(errno)
+	if errno == 0 {
+		return nil
+	}
+	return syscall.Errno(errno)
 }
 
 // Load a readline history file.
 // The default filename is ~/.history.
-func ReadHistoryFile(s string) os.Errno {
+func ReadHistoryFile(s string) error {
 	p := C.CString(s)
 	defer C.free(unsafe.Pointer(p))
 	errno := C.read_history(p)
-	return os.Errno(errno)
+	if errno == 0 {
+		return nil
+	}
+	return syscall.Errno(errno)
 }
 
 var (
@@ -71,14 +97,17 @@ var (
 
 // Save a readline history file.
 // The default filename is ~/.history.
-func WriteHistoryFile(s string) os.Errno {
+func WriteHistoryFile(s string) error {
 	p := C.CString(s)
 	defer C.free(unsafe.Pointer(p))
 	errno := C.write_history(p)
-	if errno==0 && HistoryLength >= 0 {
+	if errno == 0 && HistoryLength >= 0 {
 		errno = C.history_truncate_file(p, C.int(HistoryLength))
 	}
-	return os.Errno(errno)
+	if errno == 0 {
+		return nil
+	}
+	return syscall.Errno(errno)
 }
 
 // Set the readline word delimiters for tab-completion
@@ -94,5 +123,25 @@ func GetCompleterDelims() string {
 	cstr := C.rl_completer_word_break_characters
 	delims := C.GoString(cstr)
 	return delims
+}
+
+// 
+func CompletionMatches(text string, cbk func(text string, state int) string) []string {
+	c_text := C.CString(text)
+	defer C.free(unsafe.Pointer(c_text))
+	c_cbk := (*C.rl_compentry_func_t)(unsafe.Pointer(&cbk))
+	c_matches := C.rl_completion_matches(c_text, c_cbk)
+	n_matches := int(C._go_readline_strarray_len(c_matches))
+	matches := make([]string, n_matches)
+	for i := 0; i < n_matches; i++ {
+		matches[i] = C.GoString(C._go_readline_strarray_at(c_matches, C.int(i)))
+	}
+	return matches
+}
+
+//
+func SetAttemptedCompletionFunction(cbk func(text string, start, end int) []string) {
+	c_cbk := (*C.rl_completion_func_t)(unsafe.Pointer(&cbk))
+	C.rl_attempted_completion_function = c_cbk
 }
 /* EOF */
