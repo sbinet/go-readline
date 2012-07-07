@@ -1,5 +1,16 @@
-Clone of http://sigpipe.org/go/readline-go/ by Michael Elkins
+go-readline
+-----------
 
-Forked because
-* needs patching
-* goinstallable
+Naive `cgo` bindings to `readline`.
+
+Installation
+------------
+
+$ go get github.com/sbinet/go-readline/pkg/readline
+
+
+Documentation
+-------------
+
+http://gopkgdoc.appspot.com/pkg/github.com/sbinet/go-readline/pkg/readline
+

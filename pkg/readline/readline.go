@@ -6,12 +6,15 @@ package readline
 //  implement a go-oriented command completion
 
 /*
+ #cgo darwin CFLAGS: -I/opt/local/include
+ #cgo darwin LDFLAGS: -L/opt/local/lib
  #cgo LDFLAGS: -lreadline
+
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
- #include <readline/readline.h>
- #include <readline/history.h>
+ #include "readline/readline.h"
+ #include "readline/history.h"
 
  char* _go_readline_strarray_at(char **strarray, int idx) 
  {
